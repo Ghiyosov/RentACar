@@ -1,5 +1,7 @@
+using System.Net;
 using Dapper;
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.DataContext;
 
 namespace Infrastructure.Services;
@@ -13,38 +15,44 @@ public class CustomerService:ICrudService<Customer>
         _context = new DapperContext();
     }
 
-    public List<Customer> GetAll()
+    public Response<List<Customer>> GetAll()
     {
         var sql = "select * from Customers";
         var res = _context.GetConnection().Query<Customer>(sql).ToList();
-        return res;
+        return new Response<List<Customer>>(res);
     }
 
-    public Customer GetById(int id)
+    public Response<Customer> GetById(int id)
     {
         var sql = "select * from Customers where CustomerId = @Id";
         var res = _context.GetConnection().QueryFirstOrDefault<Customer>(sql, new { Id = id });
-        return res;
+        return new Response<Customer>(res);
     }
 
-    public string Add(Customer entity)
+    public Response<bool> Add(Customer entity)
     {
-        var sql ="insert into Customers (FirstName,LastName,Phone,Email) values (@FirstName, @LastName,  @Phone, @Email) returning FirstName";
-        var res = _context.GetConnection().QuerySingle<string>(sql, entity);
-        return $"Customer {res} was added";
+        var sql ="insert into Customers (FirstName,LastName,Phone,Email) values (@FirstName, @LastName,  @Phone, @Email)";
+        var res = _context.GetConnection().Execute(sql, entity);
+        return res == 0
+            ? new Response<bool>(HttpStatusCode.InternalServerError, "Internal Server Error")
+            : new Response<bool>(HttpStatusCode.Created, "Customer added successfully");
     }
 
-    public string Update(Customer entity)
+    public Response<bool> Update(Customer entity)
     {
-        var sql = "update Customers set FirstName=@FirstName, LastName=@LastName, Phone=@Phone, Email=@Email where CustomerId = @CustomerId returning CustomerId";
-        var res = _context.GetConnection().QuerySingle<string>(sql, entity);
-        return $"Customer {res} was updated";
+        var sql = "update Customers set FirstName=@FirstName, LastName=@LastName, Phone=@Phone, Email=@Email where CustomerId = @CustomerId";
+        var res = _context.GetConnection().Execute(sql, entity);
+        return res == 0
+            ? new Response<bool>(HttpStatusCode.InternalServerError, "Internal Server Error")
+            : new Response<bool>(HttpStatusCode.Created, "Customer updated successfully");
     }
 
-    public string Delete(int entity)
+    public Response<bool> Delete(int entity)
     {
-        var sql = "delete from Customers where CustomerId = @CustomerId returning CustomerId";
-        var res = _context.GetConnection().QuerySingle<string>(sql, new { CustomerId = entity });
-        return $"Customer {res} was deleted";
+        var sql = "delete from Customers where CustomerId = @CustomerId";
+        var res = _context.GetConnection().Execute(sql, new { CustomerId = entity });
+        return res == 0
+            ? new Response<bool>(HttpStatusCode.InternalServerError, "Internal Server Error")
+            : new Response<bool>(HttpStatusCode.Created, "Customer deleted successfully");
     }
 }

@@ -1,4 +1,5 @@
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("CarLocation/[controller]")]
-public class CarLocationController
+public class CarLocationController : ControllerBase
 {
     private readonly CarLokationService _carLocationServices;
 
@@ -16,19 +17,19 @@ public class CarLocationController
     }
 
     [HttpPost("AddCarLocation")]
-    public string AddCarLocation(CarLocation carLocation)
+    public Response<bool> AddCarLocation(CarLocation carLocation)
     {
         return _carLocationServices.AddCarLocation(carLocation);
     }
 
     [HttpDelete("DeleteCarLocation")]
-    public string DeleteCarLocation(CarLocation carLocation)
+    public Response<bool> DeleteCarLocation(CarLocation carLocation)
     {
         return _carLocationServices.DeleteCarLocation(carLocation);
     }
 
     [HttpGet("GetAllCarInLocations")]
-    public List<Car> GetAllCarInLocations(int? locationId)
+    public Response<List<Car>> GetAllCarInLocations(int? locationId)
     {
         return _carLocationServices.GetAllCarInLocations(locationId);
     }

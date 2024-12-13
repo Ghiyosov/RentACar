@@ -1,4 +1,5 @@
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("Car/[controller]")]
-public class CarController
+public class CarController : ControllerBase 
 {
     private readonly CarService _carService;
 
@@ -16,31 +17,31 @@ public class CarController
     }
 
     [HttpGet("GetAllCars")]
-    public List<Car> GetAllCars()
+    public Response<List<Car>> GetAllCars()
     {
         return _carService.GetAll();
     }
 
     [HttpGet("GetCarById/{id}")]
-    public Car GetCarById(int id)
+    public Response<Car> GetCarById(int id)
     {
         return _carService.GetById(id);
     }
 
     [HttpPost("AddCar")]
-    public string AddCar(Car car)
+    public Response<bool> AddCar(Car car)
     {
         return _carService.Add(car);
     }
 
     [HttpPut("UpdateCar")]
-    public string UpdateCar(Car car)
+    public Response<bool> UpdateCar(Car car)
     {
         return _carService.Update(car);
     }
 
     [HttpDelete("DeleteCar")]
-    public string DeleteCar(int id)
+    public Response<bool> DeleteCar(int id)
     {
         return _carService.Delete(id);
     }
