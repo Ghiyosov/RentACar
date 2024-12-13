@@ -45,8 +45,8 @@ public class CarService: ICrudService<Car>
     public string Delete(int entity)
     {
         var sqlRentals = "select * from Rentals where CarId = @Id";
-        var resRental = _context.GetConnection().QueryFirstOrDefault<Rental>(sqlRentals, new { Id = entity });
-        if (resRental.CarId != entity)
+        var resRental = _context.GetConnection().QueryFirstOrDefault(sqlRentals, new { Id = entity });
+        if (resRental is not null)
         {
             var sql = "delete from Cars where CarId = @Id returning CarId";
             var res = _context.GetConnection().QuerySingle<string>(sql, new { Id = entity });
