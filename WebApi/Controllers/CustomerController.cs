@@ -1,4 +1,5 @@
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("Customer/[controller]")]
-public class CustomerController
+public class CustomerController : ControllerBase
 {
     private readonly CustomerService _customerService;
 
@@ -16,31 +17,31 @@ public class CustomerController
     }
 
     [HttpGet("GetAll")]
-    public List<Customer> GetAll()
+    public Response<List<Customer>> GetAll()
     {
         return _customerService.GetAll();
     }
 
     [HttpGet("GetById/{id}")]
-    public Customer GetById(int id)
+    public Response<Customer> GetById(int id)
     {
         return _customerService.GetById(id);
     }
 
     [HttpPost("Add")]
-    public string Add(Customer customer)
+    public Response<bool> Add(Customer customer)
     {
         return _customerService.Add(customer);
     }
 
     [HttpPut("Update")]
-    public string Update(Customer customer)
+    public Response<bool> Update(Customer customer)
     {
         return _customerService.Update(customer);
     }
 
     [HttpDelete("Delete/{id}")]
-    public string Delete(int id)
+    public Response<bool> Delete(int id)
     {
         return _customerService.Delete(id);
     }

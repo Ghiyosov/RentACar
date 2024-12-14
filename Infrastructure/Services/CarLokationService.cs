@@ -1,5 +1,7 @@
+using System.Net;
 using Dapper;
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.DataContext;
 
 namespace Infrastructure.Services;
@@ -13,24 +15,28 @@ public class CarLokationService
         _context = new DapperContext();
     }
 
-    public string AddCarLocation(CarLocation carLocation)
+    public Response<bool> AddCarLocation(CarLocation carLocation)
     {
-        var sql = "inser into CarLocations(CarId,LocationId),values(@CarId,@LocationId)returning CarId";
-        var res = _context.GetConnection().QuerySingle<string>(sql, carLocation);
-        return $"Car {res} was added to the Location {carLocation.CarId}";
+        var sql = "inser into CarLocations(CarId,LocationId),values(@CarId,@LocationId)";
+        var res = _context.GetConnection().Execute(sql, carLocation);
+        return res==0
+            ? new Response<bool>(HttpStatusCode.InternalServerError,"Iternal Server Error")
+            : new Response<bool>(HttpStatusCode.Created, "created carlocation successfully");
     }
     
-    public string DeleteCarLocation(CarLocation carLocation)
+    public Response<bool> DeleteCarLocation(CarLocation carLocation)
     {
-        var sql = "delete from CarLocations where CarId = @CarId and LocationId = @LocationId returning CarId";
-        var res = _context.GetConnection().QuerySingle<string>(sql, carLocation);
-        return $"Car {res} was deleted to the Location {carLocation.CarId}";
+        var sql = "delete from CarLocations where CarId = @CarId and LocationId = @LocationId;";
+        var res = _context.GetConnection().Execute(sql, carLocation);
+        return res==0
+            ? new Response<bool>(HttpStatusCode.InternalServerError,"Iternal Server Error")
+            : new Response<bool>(HttpStatusCode.OK, "Car location deleted successfully");
     }
 
-    public List<Car> GetAllCarInLocations(int? locationId)
+    public Response<List<Car>> GetAllCarInLocations(int? locationId)
     {
         var sql = "select * from CarLocations where LocationId = @LocationId";
         var res = _context.GetConnection().Query<Car>(sql, new { LocationId = locationId }).ToList();
-        return res;
+        return new Response<List<Car>>(res);
     }
 }

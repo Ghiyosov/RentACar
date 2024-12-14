@@ -1,5 +1,7 @@
+using System.Net;
 using Dapper;
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.DataContext;
 
 namespace Infrastructure.Services;
@@ -14,44 +16,52 @@ public class CarService: ICrudService<Car>
         _context = new DapperContext();
     }
     
-    public List<Car> GetAll()
+    public Response<List<Car>> GetAll()
     {
         var sql = "select * from Cars";
         var res = _context.GetConnection().Query<Car>(sql).ToList();
-        return res;
+        return new Response<List<Car>>(res);
     }
 
-    public Car GetById(int id)
+    public Response<Car> GetById(int id)
     {
         var sql = "select * from Cars where CarId = @Id";
         var res = _context.GetConnection().QueryFirstOrDefault<Car>(sql, new { Id = id });
-        return res;
+        return res==null
+            ? new Response<Car>(HttpStatusCode.InternalServerError, "Iternal Server Error")
+            : new Response<Car>(HttpStatusCode.Created, "Created");
     }
 
-    public string Add(Car entity)
+    public Response<bool> Add(Car entity)
     {
-        var sql = "insert into Cars (Model, Manufacturer,Year,PricePerDay) values (@Model, @Manufacturer, @Year, @PricePerDay) returning Model;";
-        var res = _context.GetConnection().QuerySingle<string>(sql, entity);
-        return $"Car {res} is added";
+        var sql = "insert into Cars (Model, Manufacturer,Year,PricePerDay) values (@Model, @Manufacturer, @Year, @PricePerDay);";
+        var res = _context.GetConnection().Execute(sql, entity);
+        return res == 0
+            ? new Response<bool>(HttpStatusCode.InternalServerError, "Iternal Server Error")
+            : new Response<bool>(HttpStatusCode.Created, "Created");
     }
 
-    public string Update(Car entity)
+    public Response<bool> Update(Car entity)
     {
-        var sql = "update Cars set Model=@Model, Manufacturer=@Manufacturer, Year=@Year, PricePerDay=@PricePerDay where CarId = @CarId returning CarId";
-        var res = _context.GetConnection().QuerySingle<string>(sql, entity);
-        return $"Car {res} is updated";
+        var sql = "update Cars set Model=@Model, Manufacturer=@Manufacturer, Year=@Year, PricePerDay=@PricePerDay where CarId = @CarId";
+        var res = _context.GetConnection().Execute(sql, entity);
+        return res == 0
+            ? new Response<bool>(HttpStatusCode.InternalServerError, "Iternal Server Error")
+            : new Response<bool>(HttpStatusCode.OK, "Udated");
     }
 
-    public string Delete(int entity)
+    public Response<bool> Delete(int entity)
     {
         var sqlRentals = "select * from Rentals where CarId = @Id";
-        var resRental = _context.GetConnection().QueryFirstOrDefault<Rental>(sqlRentals, new { Id = entity });
-        if (resRental.CarId != entity)
+        var resRental = _context.GetConnection().QueryFirstOrDefault(sqlRentals, new { Id = entity });
+        if (resRental is not null)
         {
-            var sql = "delete from Cars where CarId = @Id returning CarId";
-            var res = _context.GetConnection().QuerySingle<string>(sql, new { Id = entity });
-            return $"Car {res} is deleted";
+            var sql = "delete from Cars where CarId = @Id";
+            var res = _context.GetConnection().Execute(sql, new { Id = entity });
+            return res == 0
+                ? new Response<bool>(HttpStatusCode.InternalServerError, "Iternal Server Error")
+                : new Response<bool>(HttpStatusCode.OK, "Deleted");
         }
-        else return $"Car {resRental.CarId} is already rented";
+        else return new Response<bool>(HttpStatusCode.InternalServerError, "Car in rentals");
     }
 }

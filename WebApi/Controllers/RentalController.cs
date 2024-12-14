@@ -1,4 +1,5 @@
 using Domein.Models;
+using Infrastructure.ApiResponse;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("Rental/[controller]")]
-public class RentalController
+public class RentalController : ControllerBase
 {
     private readonly RentalService rentalService;
 
@@ -16,37 +17,37 @@ public class RentalController
     }
 
     [HttpGet("GetAllRentals")]
-    public List<Rental> GetRentals()
+    public Response<List<Rental>> GetRentals()
     {
         return rentalService.GetAll();
     }
 
     [HttpGet("GetRentalById/{id}")]
-    public Rental GetRentalById(int id)
+    public Response<Rental> GetRentalById(int id)
     {
         return rentalService.GetById(id);
     }
 
     [HttpPost("AddRental")]
-    public string AddRental(Rental rental)
+    public Response<bool> AddRental(Rental rental)
     {
         return rentalService.Add(rental);
     }
 
     [HttpPut("UpdateRental")]
-    public string UpdateRental(Rental rental)
+    public Response<bool> UpdateRental(Rental rental)
     {
         return rentalService.Update(rental);
     }
 
     [HttpDelete("DeleteRental/{id}")]
-    public string DeleteRental(int id)
+    public Response<bool> DeleteRental(int id)
     {
         return rentalService.Delete(id);
     }
 
     [HttpGet("GetCustomerRentals")]
-    public List<Rental> GetCustomerRentals(int customerId)
+    public Response<List<Rental>> GetCustomerRentals(int customerId)
     {
         return rentalService.SearchCustomerRentals(customerId);
     }
